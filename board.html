@@ -168,7 +168,7 @@
 				saveByLocal2("playerPieceMove", playerPieceMove);
 				saveByLocal2("playerPieceEat",playerPieceEat);
 				saveByLocal2("playerPieceEatMove", playerPieceEatMove);
-				if(localStorage.getItem("playerAmount")!="undefined")playerAmount = localStorage.getItem("playerAmount").replace("\"","").replace("\"","");    
+				if(localStorage.getItem("playerAmount")!="undefined"&&localStorage.getItem("playerAmount"))playerAmount = localStorage.getItem("playerAmount").replace("\"","").replace("\"","");    
 			}
 			function saveByLocal1(name,dest){
 				var obj =localStorage.getItem(name);
