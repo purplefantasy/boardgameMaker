@@ -1,0 +1,763 @@
+<html>
+	<head>
+        <meta charset="utf-8">
+        <title>專題</title>
+		<style type="text/css">
+			.dot:hover	{background-color:yellow}
+			.line1:hover{background-color:royalBlue}
+			.line2		{transform:rotate(60deg)}
+			.line2:hover{background-color:royalBlue}
+			.line3		{transform:rotate(120deg)}
+			.line3:hover{background-color:royalBlue}
+			.face1:hover{background-color:lightBlue}
+			.face2		{background-color:yellow}
+			body   {background-image:url("1.jpg");}
+			p  {color:#800000;  }
+            button{  background-color:  #CCFF00;}
+			h1{ color:#0000FF;}
+		</style>
+		<script>
+			var step;			//步驟
+			var Div;
+			var toPastStep=0;
+			var i;
+			var L=30;           //格子大小		
+			var placeY; 	//棋盤Y座標
+			var shape = 0;		//棋盤形狀初始值
+			var dotNumber1;		//儲存棋盤1dot數
+			var dotNumber2;		//儲存棋盤2dot數
+			var dotNumber3;		//儲存棋盤3dot數
+			var moving=0;
+			var moves=0;
+			var movingPiece;
+			var round=0;
+			var gameStart;
+			var playerNow=1;
+			var pieceNow=1;
+			var playerAmount;
+			var playerColor = new Array();
+			var specialRuleAmount;
+			var specialRule = new Array();
+			for(var i=0;i<30;i++)specialRule[i] = new Array();
+			var playerFail = new Array();
+			var playerWin = new Array();
+			var board1 = new Array();
+			var win = new Array();
+			for(var i=0;i<300;i++)win[i] = new Array();
+			var playerPieceRank = new Array();							//儲存玩家棋子位階
+			for(var i=0;i<4;i++) playerPieceRank[i] = new Array();		//儲存玩家棋子位階
+			var playerPieceInitialPlace = new Array();					//儲存棋子初始位置
+			for(var i=0;i<4;i++) playerPieceInitialPlace[i] = new Array();
+			var playerPiecePlace = new Array();
+			for(var i=0;i<4;i++) playerPiecePlace[i] = new Array();
+			var playerPiece = new Array();							//儲存玩家棋子數
+			var playerPieceName = new Array(); 						//儲存玩家棋子名稱
+			for(var i=0;i<4;i++) playerPieceName[i] = new Array(); //儲存玩家棋子名稱
+			var playerPieceMove = new Array(); 						//儲存玩家棋子移動方式
+			for(var i=0;i<4;i++) playerPieceMove[i] = new Array(); //儲存玩家棋子移動方式
+			var playerPieceEat = new Array();  						//儲存玩家棋子吃棋方式
+			for(var i=0;i<4;i++) playerPieceEat[i] = new Array();  //儲存玩家棋子吃棋方式
+			var playerPieceEatMove = new Array();  						//儲存玩家棋子吃棋移動方式
+			for(var i=0;i<4;i++) playerPieceEatMove[i] = new Array();  //儲存玩家棋子吃棋移動方式
+			var dot = new Array();		//儲存點狀態
+			var dot2 = new Array();     //儲存點2狀態
+			var dot3 = new Array();		//儲存點3狀態
+			var dotB = new Array();		//儲存點狀態
+			var dot2B = new Array();     //儲存點2狀態
+			var dot3B = new Array();		//儲存點3狀態
+			var dots = new Array();		//儲存點ID
+			var dots2 = new Array();	//儲存點2ID
+			var line = new Array();		//儲存線狀態
+			var line2 = new Array();	//儲存線2狀態
+			var lines = new Array();			//儲存線ID
+            var lines2 = new Array();			//儲存線2ID
+			var message;
+			function printBoard() {
+				if(shape==0) {
+					message += "<div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					print1();
+					for(i=0;i<595;i++) lines[i]= document.getElementById("line" + (i+1));
+					for(i=0;i<218;i++) dots[i]= document.getElementById("dot" + (i+1));
+				}
+				if(shape==2) {
+					message += "<div style='width:" + ((L+5)*16+5) + ";height:" + ((L+5)*16+5+L) + "px;'>";
+					print3();
+					for(i=0;i<480;i++) lines[i]= document.getElementById("line" + (i+1));
+					for(i=0;i<225;i++) dots[i]= document.getElementById("face" + (i+1));
+				}
+				if(shape==1) {
+					message += "<div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					print2();
+					for(i=0;i<421;i++) lines2[i]= document.getElementById("line" + (i+1));
+					for(i=0;i<226;i++) dots2[i]= document.getElementById("dot" + (i+1));
+				}
+			}
+			function saveall(){
+				loading();
+				clear();
+				save("shape",shape);
+				save("line",line);
+				save("line2",line2);
+				save("dot",dot);
+				save("dot2",dot2);
+				save("dot3",dot3);
+				save("win",win);
+				save("playerColor", playerColor);
+				save("playerAmount", playerAmount);
+				save("playerPieceRank",playerPieceRank);
+				save("playerPieceInitialPlace", playerPieceInitialPlace);
+				save("playerPiece",  playerPiece);
+				save("playerPieceName", playerPieceName);
+				save("playerPieceMove",  playerPieceMove);
+				save("playerPieceEat",  playerPieceEat);
+				save("playerPieceEatMove", playerPieceEatMove);
+			}
+			function save(name,a){
+				var obj=JSON.stringify(a);
+				localStorage.setItem(name,obj);
+			}
+			function start(){
+				for(var i=0;i<596;i++) line[i]=2;	//設定所有線為灰色
+				for(var i=0;i<421;i++) line2[i]=2;  //設定所有線2為灰色
+				for(var i=0;i<218;i++) dot[i]=2;	//設定所有點為灰色
+				for(var i=0;i<226;i++) dot2[i]=2;   //設定所有點2為灰色
+				for(var i=0;i<226;i++) dot3[i]=2;   //設定所有點3為灰色
+				//loadSave();
+				step=0;
+				placeY = 23;
+				message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+				var Body = document.getElementById("Body");
+				printBoard();
+			}
+			function changeShape() {		//切換棋盤形狀
+				if(shape==2) {
+					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					print1();
+					for(i=0;i<595;i++) lines[i]= document.getElementById("line" + (i+1));
+					for(i=0;i<218;i++) dots[i]= document.getElementById("dot" + (i+1));
+					shape=0;
+					return;
+				}
+				if(shape==1) {
+					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + ((L+5)*16+5) + ";height:" + ((L+5)*16+5) + "px;'id='Div'>";
+					print3();
+					for(i=0;i<480;i++) lines[i]= document.getElementById("line" + (i+1));
+					for(i=0;i<225;i++) dots[i]= document.getElementById("face" + (i+1));
+					shape=2;
+				}
+				if(shape==0) {
+					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					print2();
+					for(i=0;i<421;i++) lines2[i]= document.getElementById("line" + (i+1));
+				    for(i=0;i<226;i++) dots2[i]= document.getElementById("dot" + (i+1));
+					shape=1;
+				}
+			}
+			function loadSave(){
+				saveByLocal1("line",line);
+				saveByLocal1("line2",line2);
+				saveByLocal1("dot",dot);
+				saveByLocal1("dot2",dot2);
+				saveByLocal1("dot3",dot3);
+				saveByLocal2("win",win);
+				saveByLocal1("playerPiece",playerPiece);
+				saveByLocal1("playerColor", playerColor);
+				saveByLocal2("playerPieceRank",playerPieceRank);
+				saveByLocal2("playerPieceInitialPlace",playerPieceInitialPlace);
+				saveByLocal2("playerPieceName",playerPieceName);
+				saveByLocal2("playerPieceMove", playerPieceMove);
+				saveByLocal2("playerPieceEat",playerPieceEat);
+				saveByLocal2("playerPieceEatMove", playerPieceEatMove);
+				if(localStorage.getItem("playerAmount")!="undefined")playerAmount = localStorage.getItem("playerAmount").replace("\"","").replace("\"","");    
+			}
+			function saveByLocal1(name,dest){
+				var obj =localStorage.getItem(name);
+				if(obj!=null) {
+					obj=obj.replace("null,","");
+					var obj2 = obj.split(",");
+					for(var i=0;i<obj2.length;i++){
+						obj2[i]=obj2[i].replace("\"","").replace("\"","").replace("[","").replace("]","");
+						dest[i]=obj2[i];
+					}
+				}
+			}
+			function saveByLocal2(name,dest){
+				var obj =localStorage.getItem(name);  
+				if(obj!=null) {
+					var obj2 = obj.split("],[");
+					var obj3 =new Array();
+					for(var i=0;i<4;i++)obj3[i]=new Array();
+					if(obj2[0]!="[[")for(var i=0;i<4;i++)obj3[i]=obj2[i].split("\",\"");
+					if(obj2[0]!="[["){
+						for(var i=0;i<4;i++){
+							for(var j=0;j<obj3[i].length;j++){
+								obj3[i][j]=obj3[i][j].replace("[","").replace("[","").replace("]","").replace("]","").replace("\"","").replace("\"","");
+								dest[i][j]=obj3[i][j];
+							}
+						}
+					}
+				}
+			}
+			function clear(){
+				localStorage.clear();
+			}
+			function special() {
+				if(step==4||step==5)for(var i=1;i<=15;i++) {
+					message+="<p style='position:absolute; top:" + (shape!=2 ? (placeY+L+(i-1.5)*L*Math.exp(1/2*Math.log(3))+L/2-2.5) : (placeY+(L+5)*(i-1)+L-10)) + "px;left:10px'>" + i + "</p>"
+				}
+				message += "</div>";
+				if(step==5) {
+					message+="<h3>勝利條件數：<input type='number' onchange='reload()' max='30' min='1' value='" + (win[0][0]==null ? 1 : win[0][0]) + "' id='win0'></h2>";
+					for(var j=1;(j<=win[0][0]||j==1);j++) {
+						message+="<p><select id='win" + j + "_0' onchange='reload()'><option " + (win[j][0]=="無" ? "selected" : "") + ">無</option><option " + (win[j][0]=="殺死王" ? "selected" : "") + ">殺死王</option><option " + (win[j][0]=="殲滅敵人" ? "selected" : "") + ">殲滅敵人</option><option " + (win[j][0]=="任意己方到達目標點" ? "selected" : "") + ">任意己方到達目標點</option></select>";
+						if(win[j][0]=="殺死王")for(var k=1;k<=playerAmount;k++) {
+							message+="玩家" + k + "的王：<select id='win" + j + "_" + k + "' onchange='reload()'>";
+							for(var m=1;m<=playerPiece[k];m++)message+="<option " + (win[j][k]==("棋子" + m) ? "selected" : "") + " value='棋子" + m + "'>棋子" + m + (playerPieceName[(k-1)][(m-1)]=="" ? "" : ("(" + playerPieceName[(k-1)][(m-1)] + ")")) + "</option>";
+							message+="</select>";
+						}
+						if(win[j][0]=="任意己方到達目標點")for(var k=1;k<=15;k++) {
+							for(var i=1;i<=playerAmount;i++) {
+								message+="玩家" + i + "：<select id='win" + j + "_" + i + "' onchange='reload()'><option " + (win[j][i]=="無" ? "selected" : "") + ">無</option>";
+								for(var k=1;k<=15;k++)for(var m=1;m<=(shape==0 ? (k%2==0 ? 14 : 15) : 15);m++)message+="<option " + (win[j][i]==(k + "之" + m) ? "selected" : "") + ">" + k + "之" + m + "</option>";
+								message+="</select>";
+							}
+						}
+					}
+					message+="</p>";
+				}
+				if(step==4)message+="<p>特殊規則數：<input type='number' onchange='reload()' id='specialRuleAmount' min='1' max='30' value='" + (specialRuleAmount==null ? 1 : specialRuleAmount) + "'></p>"
+				if(step==4)for(var i=1;(i<=specialRuleAmount||i==1);i++) {
+					message+="<p><select id='specialRule" + i + "_1' onchange='reload()'><option " + (specialRule[i][1]=="無" ? "selected" : "") + ">無</option><option " + (specialRule[i][1]=="棋子" ? "selected" : "") + ">棋子</option></select>";
+					if(specialRule[i][1]=="棋子") {
+						message+="<select id='specialRule" + i + "_2' onchange='reload()'>";
+						for(var j=1;j<=playerAmount;j++)message+="<option " + (specialRule[i][2]==(j) ? "selected" : "") + " value='" + j + "'>玩家" + j + "</option>";
+						message+="</select><select id='specialRule" + i + "_3' onchange='reload()'>";
+						for(var j=1;j<=playerPiece[specialRule[i][2]==null ? 1 : specialRule[i][2]];j++)message+="<option " + (specialRule[i][3]==("棋子" + j) ? "selected" : "") + ">棋子" + j + (playerPieceName[specialRule[i][2]==null ? 1 : specialRule[i][2]][j]=="" ? "" : ("(" + playerPieceName[specialRule[i][2]==null ? 1 : specialRule[i][2]][j] + ")")) + "</option>";
+						message+="</select><select id='specialRule" + i + "_4' onchange='reload()'>";
+						message+="<option " + (specialRule[i][4]=="到達格子" ? "selected" : "") + ">到達格子</option><option " + (specialRule[i][4]=="未移動過" ? "selected" : "") + ">未移動過</option></select>";
+						if(specialRule[i][4]=="到達格子"||specialRule[i][4]==null) {
+							message+="<select id='specialRule" + i + "_5' onchange='reload()'>";
+							for(var k=1;k<=15;k++)for(var m=1;m<=(shape==0 ? (k%2==0 ? 14 : 15) : 15);m++)message+="<option " + (specialRule[i][5]==(k + "之" + m) ? "selected" : "") + ">" + k + "之" + m + "</option>";
+							message+="</select>";
+						}
+					}
+					message+="</p>"
+				}
+				if(step==3)message+="<p>玩家<input onclick='reload()' onkeydown='reload()' type='number' max='" + playerAmount + "' min='1' id='playerNow' value='" + playerNow + "'>棋子<input type='number' onclick='reload()' onkeydown='reload()' max='" + playerPiece[playerNow] + "' min='1' id='pieceNow' value='" + pieceNow + "'>" + (playerPieceName[(playerNow-1)][(pieceNow-1)]=="" ?  "" : ("(" + playerPieceName[(playerNow-1)][(pieceNow-1)] + ")")) + "<button onclick='removePiece()'>從棋盤上清除</button></p>";
+				if(step>2)message+="<button onclick='pastStep()'>上一步</button>";
+				if(step<5)message += "<button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+				else if(step==5) message += "<button onclick='nextStep()'>開始遊戲</button><button onclick='saveall()'>存檔</button>";
+				else message += "<button onclick='endMove()'>結束移動</button><button onclick='saveall()'>存檔</button>";
+				if(step==3) {
+					message+="<div id='Div'>";
+					for(var i=0;i<playerAmount;i++)for(var j=0;j<playerPiece[(i+1)];j++)if(playerPieceInitialPlace[i][j]!=null) {
+						var a=playerPieceInitialPlace[i][j];
+						var b=(shape==0 ? Math.floor(a/14.5) : Math.floor(a/15));
+						var c=(shape==0 ? Math.floor(a%14.5) : (a%15-1));
+						message+="<p style='color:" + playerColor[i] + ";position:absolute;top:" + (placeY+L-10+b*L*Math.exp(1/2*Math.log(3))) + "px;left:" + ((b%2==0) ? (L+c*L*2+5) : (L*2+c*L*2+5)) + "px'>" + (playerPieceName[i][j]=="" ? (j+1) : playerPieceName[i][j]) + "</p>";
+					}
+					message+="</div>";
+				}
+				if(step==6) {
+					message+="<div id='Div'>";
+					for(var i=0;i<playerAmount;i++)for(var j=0;j<playerPiece[(i+1)];j++)if(playerPiecePlace[i][j]!=null) {
+						var a=playerPiecePlace[i][j];
+						if(a!=-1) {
+							var b=(shape==0 ? Math.floor(a/14.5) : Math.floor(a/15));
+							var c=(shape==0 ? Math.floor(a%14.5) : (a%15-1));
+							message+="<p style='color:" + playerColor[i] + ";position:absolute;top:" + (placeY+L-10+b*L*Math.exp(1/2*Math.log(3))) + "px;left:" + ((b%2==0) ? (L+c*L*2+5) : (L*2+c*L*2+5)) + "px'>" + (playerPieceName[i][j]=="" ? (j+1) : playerPieceName[i][j]) + "</p>";
+						}
+					}
+					message+="</div>";
+				}
+			}
+			function print1(){				//繪製棋盤1
+				for(var i=0;i<15;i++) {		//棋盤線(橫)
+					for(var j=0;i%2==0 ? j<14 : j<13;j++) {
+						message += "<img src='線" + ((step==3||step==6) ? (line[((i%2==0) ? (i*14+j-Math.floor(i/2)) : (i*14+j+1-Math.floor(i/2+1)))]==2 ? 3 : 1) : line[((i%2==0) ? (i*14+j-Math.floor(i/2)) : (i*14+j+1-Math.floor(i/2+1)))]) + ".png' class='line1' onclick='Line1(" +
+						((i%2==0) ? (i*14+j-Math.floor(i/2)) : (i*14+j+1-Math.floor(i/2+1))) + ")' height='5px' width='" + L + "' style='position:absolute; top:" + 
+						(placeY+L+i*L*Math.exp(1/2*Math.log(3))+L/2-2.5) +
+						"px;left:" + ((i%2==0) ? (L*2+j*L*2) : (L*3+j*L*2)) + "px' id='line" +
+						((i%2==0) ? (i*14+j+1-Math.floor(i/2)) : (i*14+j+2-Math.floor(i/2+1))) + "'>";
+					}
+				}
+				for(var i=0;i<14;i++) {		//棋盤線(右下左上)
+					for(var j=0;j<14;j++) {
+						message += "<img src='線" + ((step==3||step==6) ? (line[(i*14+j+203)]==2 ? 3 : 1) : line[(i*14+j+203)]) + ".png' onclick='Line1(" + (i*14+j+203) + ")' class='line2'height='5px' width='" + L + "' style='position:absolute; top:" + (placeY+L+(i+0.5)*L*Math.exp(1/2*Math.log(3))+L/2-2.5) + "px;left:" + ((i%2==0) ? (L*1.5+j*L*2) : (L*2.5+j*L*2)) + "px' id='line" + (i*14+j+204) + "'>";
+					}
+				}
+				for(var i=0;i<14;i++) {		//棋盤線(左下右上)
+					for(var j=0;j<14;j++) {
+						message += "<img src='線" + ((step==3||step==6) ? (line[(i*14+j+399)]==2 ? 3 : 1) : line[(i*14+j+399)]) + ".png' onclick='Line1(" + (i*14+j+399) + ")' class='line3'height='5px' width='" + L + "' style='position:absolute; top:" + (placeY+L+(i+0.5)*L*Math.exp(1/2*Math.log(3))+L/2-2.5) + "px;left:" + ((i%2==0) ? (L*2.5+j*L*2) : (L*1.5+j*L*2)) + "px' id='line" + (i*14+j+400) + "'>";
+					}
+				}
+				for(var i=0;i<15;i++) {		//棋盤點
+					for(var j=0;i%2==0 ? j<15 : j<14;j++) {
+						if(step!=6)message += "<img class='dot' tag='" + (dots[0]==null ? 5 : dots[(((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1)].getAttribute("tag")) + "' onclick='Dot1(" + (((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1) + ")' src='點" + ((step==3) ? (dot[((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1]==2 ? 3 : dot[((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1]) : dot[((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1]) + ".png' height='" + L + "px' width='" + L + "px' style='position:absolute;top:" + (placeY+L+i*L*Math.exp(1/2*Math.log(3))) + "px;left:" + ((i%2==0) ? (L+j*L*2) : (L*2+j*L*2)) + "px' id='dot" + ((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1))) + "'>";
+						else message += "<img class='dot' tag='" + (dots[0]==null ? 5 : dots[(((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1)].getAttribute("tag")) + "' onclick='Dot1(" + (((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1) + ")' src='點" + (dotB[((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1]==2 ? 3 : dotB[((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1)))-1]) + ".png' height='" + L + "px' width='" + L + "px' style='position:absolute;top:" + (placeY+L+i*L*Math.exp(1/2*Math.log(3))) + "px;left:" + ((i%2==0) ? (L+j*L*2) : (L*2+j*L*2)) + "px' id='dot" + ((i%2==0) ? (i*15+j+1-Math.floor(i/2)) : (i*15+j+2-Math.floor(i/2+1))) + "'>";
+					}
+				}
+				special();
+				Body.innerHTML=message;
+			}
+			
+			function print2(){	
+                  for(var i=0;i<15;i++) {		//棋盤線(橫)
+					for(var j=0;j<14;j++) {
+						message += "<img src='線" + ((step==3||step==6) ? (line2[(i*14+j+1)]==2 ? 3 : 1) : line2[(i*14+j+1)]) + ".png' class='line1' onclick='Line2(" +
+						(i*14+j+1)+ ")' height='5px' width='" + L + "' style='position:absolute; top:" + 
+						(placeY+L+i*L*Math.exp(1/2*Math.log(3))+L/2-2.5) + "px;left:" + (L*2+j*L*2) + "px' id='line" + 
+						(i*14+j+1) + "'>";
+					}
+				}
+				for(var i=0;i<14;i++) {		//棋盤線(直)
+					for(var j=0;j<15;j++) {
+						message += "<img src='線" + ((step==3||step==6) ? (line2[((i*15+j+1)+210)]==2 ? 3 : 1) : line2[((i*15+j+1)+210)]) + ".png' class='line1' onclick='Line2(" +
+						((i*15+j+1)+210)+ ")' height='"+L+"px' width='5px' style='position:absolute; top:" + 
+						(placeY+L+i*L*Math.exp(1/2*Math.log(3))+L/2-2.5+13) + "px;left:" + (L*2+j*L*2-17) + "px' id='line" + 
+						((i*15+j+1)+210) + "'>";
+					}
+				}
+				 
+				for(var i=0;i<15;i++) {		//棋盤點
+					for(var j=0;j<15;j++) {
+						message += "<img class='dot' onclick='Dot2(" + (i*15+j+1)+ ")' src='點" + ((step==3||step==6) ? (dot2[i*15+j+1]==2 ? 3 : dot2[i*15+j+1]) : dot2[i*15+j+1]) + ".png' height='" + L + "px' width='" + L + "px' style='position:absolute;top:" + (placeY+L+i*L*Math.exp(1/2*Math.log(3))) + "px;left:" + (L+j*L*2)+ "px' id='dot" + (i*15+j+1)+ "'>";
+					}
+				}
+				special();
+				Body.innerHTML=message;
+			}
+			function print3(){				//繪製棋盤3
+			for(var i=0;i<15;i++){			//繪製直線
+					for(var j=0;j<16;j++){
+						message += "<img src='線" + ((step==3||step==6) ? ((((dot3[(i*15+j+1)]==1||dot3[(i*15+j+1)]==4)&&j!=15)||((dot3[(i*15+j+1)-1]==1||dot3[(i*15+j+1)-1]==4)&&j!=0)) ? 1 : 3) : (((dot3[(i*15+j+1)]==1&&j!=15)||(dot3[(i*15+j+1)-1]==1&&j!=0)) ? 1 : 2)) + ".png' class='line1' height='" + (L+10) + "px' width='5px' style='position:absolute; top:" + (placeY+(L+5)*i+L-5) + "px; left:" + ((L+5)*j+L-5) + "px; z-index:" + ((dot3[(i*15+j+1)]==1||((i>0) ? dot3[((i-1)*15+j+1)]==1 : false)) ? 2 : 1) + "' id='line" + (16*i+j+241) + "'>";
+					}
+				}
+				for(var i=0;i<16;i++){		//繪製橫線
+					for(var j=0;j<15;j++){
+						message += "<img src='線" + ((step==3||step==6) ? ((dot3[(i*15+j+1)]==1||dot3[(i*15+j+1)]==4)||((i!=0)&&(dot3[((i-1)*15+j+1)]==1||dot3[((i-1)*15+j+1)]==4)) ? 1 : 3) : ((dot3[(i*15+j+1)]==1||((i!=0)&&dot3[((i-1)*15+j+1)]==1)) ? 1 : 2)) + ".png' class='line1' height='5px' width='" + (L+10) + "px' style='position:absolute; top:" + (placeY+(L+5)*i+L-5) + "px; left:" + ((L+5)*j+L-5) + "px; z-index:" + ((dot3[(i*15+j+1)]==1||((i>0) ? dot3[((i-1)*15+j+1)]==1 : false)) ? 2 : 1) + "' id='line" + (15*i+j+1) + "'>";
+					}
+				}
+				for(var i=0;i<15;i++){		//繪製面
+					for(var j=0;j<15;j++){
+						message += "<img src='面" + ((step==3||step==6) ? dot3[(i*15+j+1)] : 1) + ".png' class='face" + ((dot3[(i*15+j+1)]==1||dot3[(i*15+j+1)]==4) ? "2" : "1") + "' onclick='Dot3(" + (i*15+j+1) + ")' height='" + L + "px' width='" + L + "px' style='position:absolute; top:" + (placeY+(L+5)*i+L) + "px; left:" + ((L+5)*j+L) + "px;' id='face" + (15*i+j+1) + "'>";
+					}
+				}
+				special();
+				Body.innerHTML=message;
+			}
+			
+			function Line1(index) {			//棋盤1線點擊
+				if(step==0) {
+					if(line[index]==1)line[index]=2;
+					else line[index]=1;
+					lines[index].setAttribute("src", "線" + line[index] + ".png");
+				}
+			}
+			function Line2(index) {			//棋盤2線點擊
+				if(step==0) {
+					if(line2[index]==1)line2[index]=2;
+					else line2[index]=1;
+					lines2[index-1].setAttribute("src", "線" + line2[index] + ".png");
+				}
+			}
+			function removePiece() {
+				dots[playerPieceInitialPlace[playerNow][pieceNow]].setAttribute("src", "點1.png");
+				dot[playerPieceInitialPlace[playerNow][pieceNow]]=1;
+				reload();
+			}
+			function game1(index) {
+				for(i=0;i<218;i++) dots[i]= document.getElementById("dot" + (i+1));
+				var a = Math.floor(index/14.5);
+				for(var j=0;j<playerPiece[(round+1)];j++)if(playerPiecePlace[round][j]==index) {
+					movingPiece=j;
+					if(playerPieceMove[round][j]=="單格") {
+						if(dots[index].getAttribute("src")!="點6.png"&&moving==0) {
+							dots[index].setAttribute("src", "點6.png");
+							if(dotB[index-1]==1&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)dots[(index-1)].setAttribute("src", "點5.png");
+							if(dotB[index+1]==1&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)dots[(index+1)].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==1 : dotB[index+15]==1)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點5.png");;
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==1 : dotB[index-15]==1)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==1 : dotB[index+14]==1)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==1 : dotB[index-14]==1)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點5.png");
+							
+							if(dotB[index-1]==4&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)if(dots[(index-1)].getAttribute("tag")!="" + round)dots[(index-1)].setAttribute("src", "點8.png");
+							if(dotB[index+1]==4&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)if(dots[(index+1)].getAttribute("tag")!="" + round)dots[(index+1)].setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==4 : dotB[index+15]==4)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點8.png");;
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==4 : dotB[index-15]==4)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==4 : dotB[index+14]==4)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==4 : dotB[index-14]==4)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點8.png");
+							moving=1;
+						}
+						else colorReplace1_1();
+					}
+					if(playerPieceMove[round][j]=="跳棋式(不可連跳)") {
+						if(dots[index].getAttribute("src")!="點6.png"&&moving==0) {
+							dots[index].setAttribute("src", "點6.png");
+							if(dotB[index-1]==1&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)dots[(index-1)].setAttribute("src", "點5.png");
+							if(dotB[index+1]==1&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)dots[(index+1)].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==1 : dotB[index+15]==1)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點5.png");;
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==1 : dotB[index-15]==1)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==1 : dotB[index+14]==1)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==1 : dotB[index-14]==1)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點5.png");
+							
+							if(dotB[index-1]==4&&dotB[index-2]==1&&index%14.5>1.5&&line[index-1-Math.floor(index/14.5)]==1&&line[index-2-Math.floor(index/14.5)]==1)dots[(index-2)].setAttribute("src", "點5.png");
+							if(dotB[index+1]==4&&dotB[index+2]==1&&index%14.5<12.5&&line[index-Math.floor(index/14.5)]==1&&line[index+1-Math.floor(index/14.5)]==1)dots[(index+2)].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==4 : dotB[index+15]==4)&&dotB[index+30]==1&&index<188&&index%29!=14&&index%29!=13&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1&&line[index+217-Math.floor(index/14.5)+Math.floor(index/29)]==1)dots[index+30].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==4 : dotB[index-15]==4)&&dotB[index-30]==1&&index>29&&index%29>1&&line[index+188-Math.floor(index/29)]==1&&line[index+174-Math.floor(index/29)]==1)dots[index-30].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==4 : dotB[index+14]==4)&&dotB[index+28]==1&&index<190&&index%29>1&&line[index+398-Math.floor(index/29)]==1&&line[index+412-Math.floor(index/29)]==1) dots[index+28].setAttribute("src", "點5.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==4 : dotB[index-14]==4)&&dotB[index-28]&&index>27&&index%29!=14&&index%29!=13&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1&&line[index+371-Math.floor(index/14.5)+Math.floor((index)/29)]==1) dots[index-28].setAttribute("src", "點5.png");
+							
+							if(dotB[index-1]==4&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)if(dots[(index-1)].getAttribute("tag")!="" + round)dots[(index-1)].setAttribute("src", "點8.png");
+							if(dotB[index+1]==4&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)if(dots[(index+1)].getAttribute("tag")!="" + round)dots[(index+1)].setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==4 : dotB[index+15]==4)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點8.png");;
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==4 : dotB[index-15]==4)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==4 : dotB[index+14]==4)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點8.png");
+							if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==4 : dotB[index-14]==4)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點8.png");
+							moving=1;
+						}
+						else colorReplace1_1();
+					}
+					if(playerPieceMove[round][j]=="跳棋式(可連跳)") {
+						if(dots[index].getAttribute("src")!="點6.png"&&moving==0) {
+							dots[index].setAttribute("src", "點6.png");
+							if(moves==0) {
+								if(dotB[index-1]==1&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)dots[(index-1)].setAttribute("src", "點5.png");
+								if(dotB[index+1]==1&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)dots[(index+1)].setAttribute("src", "點5.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==1 : dotB[index+15]==1)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點5.png");;
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==1 : dotB[index-15]==1)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點5.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==1 : dotB[index+14]==1)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點5.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==1 : dotB[index-14]==1)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) (((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點5.png");
+								
+								if(dotB[index-1]==4&&index%14.5!=0.5&&index%14.5!=0&&line[index-1-Math.floor(index/14.5)]==1)if(dots[(index-1)].getAttribute("tag")!="" + round)dots[(index-1)].setAttribute("src", "點8.png");
+								if(dotB[index+1]==4&&index%14.5!=14&&index%14.5!=13.5&&line[index-Math.floor(index/14.5)]==1)if(dots[(index+1)].getAttribute("tag")!="" + round)dots[(index+1)].setAttribute("src", "點8.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==4 : dotB[index+15]==4)&&index<203&&index%29!=14&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+14] : dots[index+15]).setAttribute("src", "點8.png");;
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==4 : dotB[index-15]==4)&&index>14&&index%29!=0&&line[index+188-Math.floor(index/29)]==1)if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-14] : dots[index-15]).setAttribute("src", "點8.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==4 : dotB[index+14]==4)&&index<203&&index%29!=0&&line[index+398-Math.floor(index/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index+13] : dots[index+14]).setAttribute("src", "點8.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==4 : dotB[index-14]==4)&&index>14&&index%29!=14&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1) if((((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).getAttribute("tag")!="" + round)(((index/14.5)%2==0&&(index+1)%29==0) ? dots[index-13] : dots[index-14]).setAttribute("src", "點8.png");
+							}
+							if(moves==1||moves==0) {
+								if(dotB[index-1]==4&&dotB[index-2]==1&&index%14.5>1.5&&line[index-1-Math.floor(index/14.5)]==1&&line[index-2-Math.floor(index/14.5)]==1)dots[(index-2)].setAttribute("src", "點7.png");
+								if(dotB[index+1]==4&&dotB[index+2]==1&&index%14.5<12.5&&line[index-Math.floor(index/14.5)]==1&&line[index+1-Math.floor(index/14.5)]==1)dots[(index+2)].setAttribute("src", "點7.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+14]==4 : dotB[index+15]==4)&&dotB[index+30]==1&&index<188&&index%29!=14&&index%29!=13&&line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]==1&&line[index+217-Math.floor(index/14.5)+Math.floor(index/29)]==1)dots[index+30].setAttribute("src", "點7.png");;
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-14]==4 : dotB[index-15]==4)&&dotB[index-30]==1&&index>29&&index%29>1&&line[index+188-Math.floor(index/29)]==1&&line[index+174-Math.floor(index/29)]==1)dots[index-30].setAttribute("src", "點7.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index+13]==4 : dotB[index+14]==4)&&dotB[index+28]==1&&index<190&&index%29>1&&line[index+398-Math.floor(index/29)]==1&&line[index+412-Math.floor(index/29)]==1) dots[index+28].setAttribute("src", "點7.png");
+								if((((index/14.5)%2==0&&(index+1)%29==0) ? dotB[index-13]==4 : dotB[index-14]==4)&&dotB[index-28]&&index>27&&index%29!=14&&index%29!=13&&line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]==1&&line[index+371-Math.floor(index/14.5)+Math.floor((index)/29)]==1) dots[index-28].setAttribute("src", "點7.png");
+							}
+							moving=1;
+						}
+						else colorReplace1_1();
+					}
+				}
+				else if(moving==1&&dots[index].getAttribute("src")=="點5.png") {
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點1.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", "5");
+					dotB[playerPiecePlace[round][movingPiece]]=1;
+					playerPiecePlace[round][movingPiece]=index; 
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點4.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", ("" + round));
+					dotB[playerPiecePlace[round][movingPiece]]=4;
+					reload(); 
+					moving=0;
+					moves=0;
+					round+=1;
+					if(round>playerAmount-1)round=0;
+				}
+				else if(moving==1&&dots[index].getAttribute("src")=="點7.png") {
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點1.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", "5");
+					dotB[playerPiecePlace[round][movingPiece]]=1;
+					playerPiecePlace[round][movingPiece]=index; 
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點4.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", ("" + round));
+					dotB[playerPiecePlace[round][movingPiece]]=4;
+					reload(); 
+					moving=0;
+					moves=1;
+				}
+				else if(moving==1&&moves==0&&dots[index].getAttribute("src")=="點8.png") {
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點1.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", "5");
+					dotB[playerPiecePlace[round][movingPiece]]=1;
+					for(var i=0;i<playerAmount;i++)for(var j=0;j<playerPiece[(i+1)];j++)if(playerPiecePlace[i][j]==index)playerPiecePlace[i][j]=-1;
+					playerPiecePlace[round][movingPiece]=index; 
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("src", "點4.png");
+					dots[playerPiecePlace[round][movingPiece]].setAttribute("tag", ("" + round));
+					dotB[playerPiecePlace[round][movingPiece]]=4;
+					reload(); 
+					moving=0;
+					moves=1;
+				}
+				gamewin1();
+			}
+			function endMove() {
+				if(moves!=0) {
+					moves=0;
+					round+=1;
+					if(round>playerAmount-1)round=0;
+				}
+				else window.alert("玩家" + (round+1) + "還未進行任何移動！")
+			}
+			function gamewin1() {
+				for(var i=0;i<win[0][0];i++)if(win[i+1][0]=="殲滅敵人")for(var j=0;j<playerAmount;j++) {
+					playerFail[j]=1;
+					for(var k=0;k<playerPiece[j+1];k++)if(playerPiecePlace[j][k]!=-1)playerFail[j]=0;
+				}
+				for(var i=0;i<win[0][0];i++)if(win[i+1][0]=="殺死王")for(var j=1;j<=playerAmount;j++)if(playerPiecePlace[j][win[i+1][j].replace("棋子", "")-1]==-1)playerFail[j-1]=1;
+				for(var i=1;i<=win[0][0];i++)if(win[i][0]=="任意己方到達目標點") {
+					var a = new Array();
+					for(var j=1;j<=playerAmount;j++)a[j]=new Array();
+					for(var j=1;j<=playerAmount;j++) {
+						if(win[i][0]!="殺死王"&&win[i][0]!="無"&&win[i][0]!="殲滅敵人")a[j]=win[i][j].split("之");
+						var b = ((a[j][1]-0)+(a[j][0]-1)*15-(Math.floor(a[j][0]-1)/2)-1);
+						for(var k=0;k<playerPiece[j];k++)if(b==playerPiecePlace[j-1][k])playerWin[j]=1;
+					}
+				}
+				var a = playerAmount;
+				for(var i=0;i<playerAmount;i++) {
+					if(playerFail[i]==1)a-=1;
+				}
+				if(a==1)for(var i=0;i<playerAmount;i++)if(playerFail[i]!=1)playerWin[i]=1;
+				for(var i=0;i<playerAmount;i++)if(playerWin[i]==1) {
+					window.alert("玩家" + (i+1) + "勝利！");
+					for(var j=0;j<4;j++) {
+						playerWin[j]=0;
+						playerFail[j]=0;
+						step=0;
+						start();
+					}
+				}
+			}
+			function colorReplace1_1() {
+				for(i=0;i<218;i++) {
+					if(dots[i].getAttribute("src")=="點6.png")dots[i].setAttribute("src", "點4.png");
+					if(dots[i].getAttribute("src")=="點5.png")dots[i].setAttribute("src", "點1.png");
+					if(dots[i].getAttribute("src")=="點7.png")dots[i].setAttribute("src", "點1.png");
+					if(dots[i].getAttribute("src")=="點8.png")dots[i].setAttribute("src", "點4.png");
+					moving=0;
+				}
+			}
+			function Dot1(index) {			//棋盤1點點擊
+				if(step==0) {
+					if(dot[index]==1) {
+						dot[index]=2;
+						if(index%14.5!=0.5&&index%14.5!=0) line[index-1-Math.floor(index/14.5)]=2;					//點的左邊的線
+						if(index%14.5!=14&&index%14.5!=13.5) line[index-Math.floor(index/14.5)]=2;					//點的右邊的線
+						if(index<203&&index%29!=14)line[index+203-Math.floor(index/14.5)+Math.floor((index)/29)]=2;	//點的右下邊的線
+						if(index>14&&index%29!=0)line[index+188-Math.floor(index/29)]=2;							//點的左上邊的線
+						if(index<203&&index%29!=0)line[index+398-Math.floor(index/29)]=2;							//點的左下邊的線
+						if(index>14&&index%29!=14)line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]=2;	//點的右上邊的線
+					}
+					else {
+						dot[index]=1;
+						if(dot[index-1]==1&&index%14.5!=0.5&&index%14.5!=0) line[index-1-Math.floor(index/14.5)]=1;
+						if(dot[index+1]==1&&index%14.5!=14&&index%14.5!=13.5) line[index-Math.floor(index/14.5)]=1;
+						if((((index/14.5)%2==0&&(index+1)%29==0) ? dot[index+14]==1 : dot[index+15]==1)&&index<203&&index%29!=14) line[index+203-Math.floor(index/14.5)+Math.floor(index/29)]=1;
+						if((((index/14.5)%2==0&&(index+1)%29==0) ? dot[index-14]==1 : dot[index-15]==1)&&index>14&&index%29!=0) line[index+188-Math.floor(index/29)]=1;
+						if((((index/14.5)%2==0&&(index+1)%29==0) ? dot[index+13]==1 : dot[index+14]==1)&&index<203&&index%29!=0) line[index+398-Math.floor(index/29)]=1;
+						if((((index/14.5)%2==0&&(index+1)%29==0) ? dot[index-13]==1 : dot[index-14]==1)&&index>14&&index%29!=14) line[index+385-Math.floor(index/14.5)+Math.floor((index)/29)]=1;
+					}
+					dots[index].setAttribute("src", "點" + dot[index] + ".png");
+					for(var i = 0;i<595;i++)lines[i].setAttribute("src", "線" + line[i] + ".png");
+				}
+				else if(step==4){
+					Div=document.getElementById("Div");
+					if(dot[index]==1) {
+						if(playerPieceInitialPlace[(playerNow-1)][(pieceNow-1)]!=null) {
+							dots[playerPieceInitialPlace[(playerNow-1)][(pieceNow-1)]].setAttribute("src", "點1.png");
+							dots[playerPieceInitialPlace[(playerNow-1)][(pieceNow-1)]].setAttribute("tag", "5");
+							dot[playerPieceInitialPlace[(playerNow-1)][(pieceNow-1)]]=1;
+						}
+						playerPieceInitialPlace[(playerNow-1)][(pieceNow-1)]=index;
+						dot[index]=4;
+						dots[index].setAttribute("src", "點4.png");
+						dots[index].setAttribute("tag", ("" + (playerNow-1)));
+						reload();
+					}
+				}
+				if(step==7)game1(index);
+			}
+			function Dot2(index) {			//棋盤2點點擊
+				if(step==0) {
+					if(dot2[index]==1) {
+						dot2[index]=2;
+						if(index % 15 !=1) line2[index-Math.floor(index/15)-(index%15==0 ? 0 : 1)] =2;	//點的左邊的線
+						if(index % 15 !=0) line2[index-Math.floor(index/15)] =2;	//點的右邊的線
+						if(index > 15) line2[index-15+210] =2 ;						//點的上面的線
+						if(index < 221)line2[index+210] =2 ;
+					}
+					else {
+						dot2[index]=1;
+						if(dot2[index-1]==1&index % 15 !=1) line2[index-Math.floor(index/15)-(index%15==0 ? 0 : 1)] =1; //點的左邊的線
+						if(dot2[index+1]==1&index % 15 !=0) line2[index-Math.floor(index/15)] =1;	//點的右邊的線
+						if(dot2[index-15]==1&index > 15) line2[index-15+210] =1 ;					//點的上面的線
+						if(dot2[index+15]==1&index < 221)line2[index+210] =1 ;
+					}
+					dots2[index-1].setAttribute("src", "點" + dot2[index] + ".png");
+					for(var i = 0;i<420;i++)lines2[i].setAttribute("src", "線" + line2[i+1] + ".png");
+				}
+				else if(step==4){
+					Div=document.getElementById("Div");
+					if(dot2[index]==1) {
+						if(playerPieceInitialPlace[playerNow][pieceNow]!=null) {
+							dots2[playerPieceInitialPlace[playerNow][pieceNow]].setAttribute("src", "點1.png");
+							dot2[playerPieceInitialPlace[playerNow][pieceNow]]=1;
+						}
+						playerPieceInitialPlace[playerNow][pieceNow]=index;
+						dot2[index]=4;
+						dots2[index].setAttribute("src", "點4.png");
+						reload();
+					}
+				}
+			}
+			function Dot3(index) {			//棋盤3點點擊
+				if(step==0) {
+					if(dot3[index]==1)dot3[index]=2;
+					else dot3[index]=1;
+					for(var i=0;i<225;i++)dots[i].setAttribute("class", "face" + ((dot3[i+1]==1) ? "2" : "1"));
+					for(var i = 0;i<240;i++)lines[i].setAttribute("src", "線" + ((dot3[i+1]==1||((i>14) ? dot3[i-14]==1 : false)) ? 1 : 2) + ".png");
+					for(var i = 240;i<480;i++)lines[i].setAttribute("src", "線" + (((dot3[(i-240+1)-Math.floor((i-240)/16)]==1&&(i-240)%16!=15)||(dot3[i-240-Math.floor((i-240)/16)]==1&&(i-240)%16!=0)) ? 1 : 2) + ".png");
+					for(var i = 0;i<240;i++)lines[i].setAttribute("style", "position:absolute; top:" + (placeY+(L+5)*Math.floor(i/15)+L-5) + "px; left:" + ((L+5)*(i%15)+L-5) + "px; z-index:" + ((dot3[i+1]==1||((i>14) ? dot3[i-14]==1 : false)) ? 2 : 1));
+				}
+				else if(step==4){
+					Div=document.getElementById("Div");
+					if(dot3[index]==1) {
+						if(playerPieceInitialPlace[playerNow][pieceNow]!=null) {
+							dots[playerPieceInitialPlace[playerNow][pieceNow]].setAttribute("src", "面1.png");
+							dot3[playerPieceInitialPlace[playerNow][pieceNow]]=1;
+						}
+						playerPieceInitialPlace[playerNow][pieceNow]=index;
+						dot3[index]=4;
+						dots[index-1].setAttribute("src", "點4.png");
+						reload();
+					}
+				}
+			}
+			
+			function pastStep() {
+				step -= 2;
+				if(step==4)step-=1;
+				toPastStep=1;
+				loading();
+				nextStep();
+			}
+			function reload() {
+				step -= 1;
+				toPastStep=1;
+				loading();
+				nextStep();
+			}
+			function loading() {
+				if(document.getElementById("playerNow"))playerNow=document.getElementById("playerNow").value;
+				if(document.getElementById("pieceNow"))pieceNow=document.getElementById("pieceNow").value;
+				if(pieceNow>playerPiece[playerNow])pieceNow=1;
+				for(var i=1;(i<=specialRuleAmount||i==1);i++) {
+					if(document.getElementById("specialRule" + i + "_1"))specialRule[i][1]=document.getElementById("specialRule" + i + "_1").value;
+					if(document.getElementById("specialRuleAmount"))specialRuleAmount=document.getElementById("specialRuleAmount").value;
+					if(specialRuleAmount<1)specialRuleAmount=1;
+					if(specialRuleAmount>30)specialRuleAmount=30;
+					if(document.getElementById("specialRule" + i + "_2"))specialRule[i][2]=document.getElementById("specialRule" + i + "_2").value;
+					if(document.getElementById("specialRule" + i + "_3"))specialRule[i][3]=document.getElementById("specialRule" + i + "_3").value;
+					if(document.getElementById("specialRule" + i + "_4"))specialRule[i][4]=document.getElementById("specialRule" + i + "_4").value;
+					if(document.getElementById("specialRule" + i + "_5"))specialRule[i][5]=document.getElementById("specialRule" + i + "_5").value;
+				}
+				for(var i=1;(i<=win[0][0]||i==1);i++) {
+					if(document.getElementById("win0"))win[0][0]=document.getElementById("win0").value;
+					if(document.getElementById("win" + i + "_0"))win[i][0]=document.getElementById("win" + i + "_0").value;
+					if(document.getElementById("win" + i + "_1"))win[i][1]=document.getElementById("win" + i + "_1").value;
+					if(document.getElementById("win" + i + "_2"))win[i][2]=document.getElementById("win" + i + "_2").value;
+					if(document.getElementById("win" + i + "_3"))win[i][3]=document.getElementById("win" + i + "_3").value;
+					if(document.getElementById("win" + i + "_4"))win[i][4]=document.getElementById("win" + i + "_4").value;
+				}
+			}
+			function nextStep() {
+				saveall();
+				if(step==4)step++;
+				switch(step) {
+					case 0:
+						message = "<h1>遊戲規則設定</h1><p>玩家數量(1~4)：<input type='number' max='4' min='1' value='" + (playerAmount==null ? 2 : playerAmount) + "' id='playerAmount'></p><button onclick='start()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						break;
+					case 1:
+						if(toPastStep==0)playerAmount = document.getElementById("playerAmount").value;
+						message = "<h1>遊戲規則設定</h1>";
+						for(var i=1;i<=playerAmount;i++) message+="<p>玩家" + i + "棋子數(0~32，0為無上限，無上限的情況下每顆棋子功能相同)：<input type='number' max='32' min='0' value='" + (playerPiece[i]==null ? 1 : playerPiece[i]) + "' id='player" + i + "pieces'></p>";
+						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						break;
+					case 2:
+						if(toPastStep==0)for(var i=1;i<=playerAmount;i++) {
+							playerPiece[i]=document.getElementById("player" + i + "pieces").value
+							if(document.getElementById("player" + i + "pieces").value>32||document.getElementById("player" + i + "pieces").value<0) {
+								step+=1;
+								window.alert("您輸入了錯誤的數字！");
+								pastStep();
+								return;
+							}
+						}
+						message = "<h1>遊戲規則設定</h1>";
+						for(var d=0;d<playerAmount;d++){
+							message+="<h3>玩家" + (d+1) + "：</h3><p>代表色：<input type='color' value='" + (playerColor[d]==null ? "black" : playerColor[d]) + "' id='playerColor" + d + "'></p>";
+							for(var e=0;e<playerPiece[(d+1)]||playerPiece[(d+1)]==0&&e==0;e++) {
+								message+="<h4>棋子" + (e+1) + "：</h4><p>名稱(可留白)：<input type='text' maxlength='2' style='width:50px' id='player" + d + "PieceName" + e + "' value='" + (playerPieceName[d][e]==null ? "" : playerPieceName[d][e]) + "'></p>";
+								if(shape==0) message+="<p>移動方式：<select id='player" + d + "PieceMove" + e + "'><option " + (playerPieceMove[d][e]=="跳棋式(可連跳)" ? "selected" : "") + ">跳棋式(可連跳)</option><option " + (playerPieceMove[d][e]=="跳棋式(不可連跳)" ? "selected" : "") + ">跳棋式(不可連跳)</option><option " + (playerPieceMove[d][e]=="單格" ? "selected" : "") + ">單格</option><option " + (playerPieceMove[d][e]=="無法移動" ? "selected" : "") + ">無法移動</option></select></p>";
+								if(shape==1) message+="<p>移動方式：<select id='player" + d + "PieceMove" + e + "'><option>單方向單格</option><option>十字單格</option><option>十字無限格</option><option>十字跳棋式</option><option>斜十字單格</option><option>斜十字無限格</option><option>斜走跳棋式</option><option>全方向單格</option><option>全方向無限格</option><option>日字形</option><option>田字形</option><option>無法移動</option></select></p>";
+								if(shape==2) message+="<p>移動方式：<select id='player" + d + "PieceMove" + e + "'><option>單方向單格</option><option>十字單格</option><option>十字無限格</option><option>十字跳棋式</option><option>斜十字單格</option><option>斜十字無限格</option><option>斜走跳棋式</option><option>全方向單格</option><option>全方向無限格</option><option>日字形</option><option>田字形</option><option>無法移動</option></select></p>";
+								message+="<p>吃棋方式：<select id='player" + d + "PieceEat" + e + "'><option " + (playerPieceEat[d][e]=="覆蓋式" ? "selected" : "") + ">覆蓋式</option><option " + (playerPieceEat[d][e]=="無" ? "selected" : "") + ">無</option></select></p>";
+								if(shape!=0) message+="<p>吃棋移動方式：<select id='player" + d + "PieceEatMove" + e + "'><option>單方向單格</option><option>單方向跳棋式</option><option>十字單格</option><option>十字無限格</option><option>十字跳棋式</option><option>斜十字單格</option><option>斜十字無限格</option><option>斜走跳棋式</option><option>全方向單格</option><option>全方向無限格</option><option>全方向跳棋式</option><option>橫線單格</option><option>橫線無限格</option><option>直線單格</option><option>直線無限格</option><option>日字形</option><option>田字形</option><option>自定義</option><option>無</option></select></p>";
+								if(shape!=0)message +="<p>棋子位階(0~100，同位階可互吃，高位階可吃低位階，1位階可吃100位階，0位階可吃全位階也可被除1位階以外的吃)：<input type='number' id='player" + d + "PieceRank" + e + "' min='0' max='100' value='" + (playerPieceRank[d][e]==null ? 2 : playerPieceRank[d][e]) + "'></p>"
+							}
+						}
+						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						break;
+					case 3:
+						if(toPastStep==0) {
+							for (var i=0;i<playerAmount;i++){
+								if(playerPiece[1]>0) {
+									playerColor[i]=document.getElementById("playerColor" + i).value;
+									for(var j=0;j<playerPiece[(i+1)];j++)playerPieceName[i][j]=document.getElementById("player" + i + "PieceName" + j).value;
+									for(var j=0;j<playerPiece[(i+1)];j++)playerPieceMove[i][j]=document.getElementById("player" + i + "PieceMove" + j).value;
+									for(var j=0;j<playerPiece[(i+1)];j++)playerPieceEat[i][j]=document.getElementById("player" + i + "PieceEat" + j).value;
+									if(shape!=0)for(var j=1;j<=playerPiece[i];j++)playerPieceEatMove[i][j]=document.getElementById("player" + i + "PieceEatMove" + j).value;
+									if(shape!=0)for(var j=0;j<playerPiece[(i+1)];j++)playerPieceRank[i][j]=document.getElementById("player" + i + "PieceRank" + j).value;
+									if(shape!=0)for(var j=0;j<playerPiece[(i+1)];j++)if(document.getElementById("player" + i + "PieceRank" + j).value>100||document.getElementById("player" + i + "PieceRank" + j).value<0) {
+										step+=1;
+										window.alert("您於棋子位階處輸入了錯誤的數字！");
+										pastStep();
+										return;
+									}
+								}
+							}
+						}
+						message = "<h1>設定棋子初始位置</h1>";
+						placeY = 59.44;
+						printBoard();
+						break;
+					case 4:
+						message = "<h1>特殊規則設定</h1>";
+						printBoard();
+						break;
+					case 5:
+						placeY = 59.44;
+						message = "<h1>勝利條件設定</h1>";
+						gameStart=1;
+						printBoard();
+						break;
+					case 6:
+						placeY = 0;
+						message="";
+						if(gameStart==1)for(var i=0;i<playerAmount;i++)for(var j=0;j<playerPiece[i+1];j++) { playerPiecePlace[i][j]=playerPieceInitialPlace[i][j]; gameStart=0; for(var k=0;k<218;k++)dotB[k]=dot[k]; round=0; for(var k=0;k<4;k++)playerFail[k]=0; moves=0;}
+						printBoard();
+						break;
+					default:
+						message = "";
+				}
+				toPastStep=0;
+				step++;
+				if(step!=4||step<6)Body.innerHTML=message;
+			}
+			window.addEventListener("load", start, false);
+			
+		</script>
+    </head>
+    <body id="Body">
+	</body>
+</html>
