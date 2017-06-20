@@ -680,7 +680,7 @@
 					case 1:
 						if(toPastStep==0)playerAmount = document.getElementById("playerAmount").value;
 						message = "<h1>遊戲規則設定</h1>";
-						for(var i=1;i<=playerAmount;i++) message+="<p>玩家" + i + "棋子數(0~32，0為無上限，無上限的情況下每顆棋子功能相同)：<input type='number' max='32' min='0' value='" + (playerPiece[i]==null ? 1 : playerPiece[i]) + "' id='player" + i + "pieces'></p>";
+						for(var i=1;i<=playerAmount;i++) message+="<p>玩家" + i + "棋子數(1~32)：<input type='number' max='32' min='1' value='" + (playerPiece[i]==null ? 1 : playerPiece[i]) + "' id='player" + i + "pieces'></p>";
 						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
 						break;
 					case 2:
@@ -695,7 +695,7 @@
 						}
 						message = "<h1>遊戲規則設定</h1>";
 						for(var d=0;d<playerAmount;d++){
-							message+="<h3>玩家" + (d+1) + "：</h3><p>代表色：<input type='color' value='" + (playerColor[d]==null ? "black" : playerColor[d]) + "' id='playerColor" + d + "'></p>";
+							message+="<h3>玩家" + (d+1) + "：</h3><p>代表色：<input type='color' value='" + (playerColor[d]==null ? "" : playerColor[d]) + "' id='playerColor" + d + "'></p>";
 							for(var e=0;e<playerPiece[(d+1)]||playerPiece[(d+1)]==0&&e==0;e++) {
 								message+="<h4>棋子" + (e+1) + "：</h4><p>名稱(可留白)：<input type='text' maxlength='2' style='width:50px' id='player" + d + "PieceName" + e + "' value='" + (playerPieceName[d][e]==null ? "" : playerPieceName[d][e]) + "'></p>";
 								if(shape==0) message+="<p>移動方式：<select id='player" + d + "PieceMove" + e + "'><option " + (playerPieceMove[d][e]=="跳棋式(可連跳)" ? "selected" : "") + ">跳棋式(可連跳)</option><option " + (playerPieceMove[d][e]=="跳棋式(不可連跳)" ? "selected" : "") + ">跳棋式(不可連跳)</option><option " + (playerPieceMove[d][e]=="單格" ? "selected" : "") + ">單格</option><option " + (playerPieceMove[d][e]=="無法移動" ? "selected" : "") + ">無法移動</option></select></p>";
