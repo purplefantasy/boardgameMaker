@@ -1,7 +1,7 @@
 <html>
 	<head>
         <meta charset="utf-8">
-        <title>Board game Maker</title>
+        <title>專題</title>
 		<style type="text/css">
 			.dot:hover	{background-color:yellow}
 			.line1:hover{background-color:royalBlue}
@@ -11,7 +11,7 @@
 			.line3:hover{background-color:royalBlue}
 			.face1:hover{background-color:lightBlue}
 			.face2		{background-color:yellow}
-			body   {background-image:url("1.JPG");}
+			body   {background-image:url("1.jpg");}
 			p  {color:#800000;  }
             button{  background-color:  #CCFF00;}
 			h1{ color:#0000FF;}
@@ -72,6 +72,7 @@
 			var lines = new Array();			//儲存線ID
             var lines2 = new Array();			//儲存線2ID
 			var message;
+			var ini = false;
 			function printBoard() {
 				if(shape==0) {
 					message += "<div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
@@ -117,21 +118,24 @@
 				localStorage.setItem(name,obj);
 			}
 			function start(){
-				for(var i=0;i<596;i++) line[i]=2;	//設定所有線為灰色
-				for(var i=0;i<421;i++) line2[i]=2;  //設定所有線2為灰色
-				for(var i=0;i<218;i++) dot[i]=2;	//設定所有點為灰色
-				for(var i=0;i<226;i++) dot2[i]=2;   //設定所有點2為灰色
-				for(var i=0;i<226;i++) dot3[i]=2;   //設定所有點3為灰色
-				loadSave();
+				if(!ini){
+					for(var i=0;i<596;i++) line[i]=2;	//設定所有線為灰色
+					for(var i=0;i<421;i++) line2[i]=2;  //設定所有線2為灰色
+					for(var i=0;i<218;i++) dot[i]=2;	//設定所有點為灰色
+					for(var i=0;i<226;i++) dot2[i]=2;   //設定所有點2為灰色
+					for(var i=0;i<226;i++) dot3[i]=2;   //設定所有點3為灰色
+					ini = true
+				}
+				//loadSave();
 				step=0;
 				placeY = 23;
-				message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+				message = "<span>棋盤形狀設置</span><button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
 				var Body = document.getElementById("Body");
 				printBoard();
 			}
 			function changeShape() {		//切換棋盤形狀
 				if(shape==2) {
-					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					message = "<span>棋盤形狀設置</span><button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
 					print1();
 					for(i=0;i<595;i++) lines[i]= document.getElementById("line" + (i+1));
 					for(i=0;i<218;i++) dots[i]= document.getElementById("dot" + (i+1));
@@ -139,14 +143,14 @@
 					return;
 				}
 				if(shape==1) {
-					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + ((L+5)*16+5) + ";height:" + ((L+5)*16+5) + "px;'id='Div'>";
+					message = "<span>棋盤形狀設置</span><button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + ((L+5)*16+5) + ";height:" + ((L+5)*16+5) + "px;'id='Div'>";
 					print3();
 					for(i=0;i<480;i++) lines[i]= document.getElementById("line" + (i+1));
 					for(i=0;i<225;i++) dots[i]= document.getElementById("face" + (i+1));
 					shape=2;
 				}
 				if(shape==0) {
-					message = "<button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
+					message = "<span>棋盤形狀設置</span><button onclick='changeShape()'>切換棋盤形狀</button><div style='width:" + L*30.5 + ";height:" + (15*L*Math.exp(1/2*Math.log(3))+L) + "px;'>";
 					print2();
 					for(i=0;i<421;i++) lines2[i]= document.getElementById("line" + (i+1));
 				    for(i=0;i<226;i++) dots2[i]= document.getElementById("dot" + (i+1));
@@ -168,7 +172,7 @@
 				saveByLocal2("playerPieceMove", playerPieceMove);
 				saveByLocal2("playerPieceEat",playerPieceEat);
 				saveByLocal2("playerPieceEatMove", playerPieceEatMove);
-				if(localStorage.getItem("playerAmount")!=null&&localStorage.getItem("playerAmount"))playerAmount = localStorage.getItem("playerAmount").replace("\"","").replace("\"","");    
+				if(localStorage.getItem("playerAmount")!="undefined")playerAmount = localStorage.getItem("playerAmount").replace("\"","").replace("\"","");    
 			}
 			function saveByLocal1(name,dest){
 				var obj =localStorage.getItem(name);
@@ -243,11 +247,11 @@
 					}
 					message+="</p>"
 				}
-				if(step==3)message+="<p>玩家<input onclick='reload()' onkeydown='reload()' type='number' max='" + playerAmount + "' min='1' id='playerNow' value='" + playerNow + "'>棋子<input type='number' onclick='reload()' onkeydown='reload()' max='" + playerPiece[playerNow] + "' min='1' id='pieceNow' value='" + pieceNow + "'>" + (playerPieceName[(playerNow-1)][(pieceNow-1)]=="" ?  "" : ("(" + playerPieceName[(playerNow-1)][(pieceNow-1)] + ")")) + "<button onclick='removePiece()'>從棋盤上清除</button></p>";
+				if(step==3)message+="<p>玩家<input onclick='reload()' onkeydown='reload()' type='number' max='" + playerAmount + "' min='1' id='playerNow' value='" + playerNow + "'>棋子<input type='number' onclick='reload()' onkeydown='reload()' max='" + playerPiece[playerNow] + "' min='1' id='pieceNow' value='" + pieceNow + "'>" + (playerPieceName[(playerNow-1)][(pieceNow-1)]=="" ?  "" : ("(" + playerPieceName[(playerNow-1)][(pieceNow-1)] + ")")) + "</p>";
 				if(step>2)message+="<button onclick='pastStep()'>上一步</button>";
-				if(step<5)message += "<button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
-				else if(step==5) message += "<button onclick='nextStep()'>開始遊戲</button><button onclick='saveall()'>存檔</button>";
-				else message += "<button onclick='endMove()'>結束移動</button><button onclick='saveall()'>存檔</button>";
+				if(step<5)message += "<button onclick='nextStep()'>下一步</button>";
+				else if(step==5) message += "<button onclick='nextStep()'>開始遊戲</button>";
+				else message += "<button onclick='endMove()'>結束移動</button>";
 				if(step==3) {
 					message+="<div id='Div'>";
 					for(var i=0;i<playerAmount;i++)for(var j=0;j<playerPiece[(i+1)];j++)if(playerPieceInitialPlace[i][j]!=null) {
@@ -498,34 +502,60 @@
 				}
 				else window.alert("玩家" + (round+1) + "還未進行任何移動！")
 			}
-			function gamewin1() {
-				for(var i=0;i<win[0][0];i++)if(win[i+1][0]=="殲滅敵人")for(var j=0;j<playerAmount;j++) {
-					playerFail[j]=1;
-					for(var k=0;k<playerPiece[j+1];k++)if(playerPiecePlace[j][k]!=-1)playerFail[j]=0;
+			function gamewin1() {  //勝利判定
+				for(var i=0;i<win[0][0];i++){
+					if(win[i+1][0]=="殲滅敵人"){
+						for(var j=0;j<playerAmount;j++) {
+							playerFail[j]=1;
+							for(var k=0;k<playerPiece[j+1];k++){
+								if(playerPiecePlace[j][k]!=-1){
+									playerFail[j]=0;
+								}
+							}
+						}
+					}
 				}
-				for(var i=0;i<win[0][0];i++)if(win[i+1][0]=="殺死王")for(var j=1;j<=playerAmount;j++)if(playerPiecePlace[j][win[i+1][j].replace("棋子", "")-1]==-1)playerFail[j-1]=1;
+				for(var i=0;i<win[0][0];i++){
+					if(win[i+1][0]=="殺死王"){
+						for(var j=0;j<playerAmount;j++){
+							if(playerPiecePlace[j][win[i+1][j+1].replace("棋子", "")-1]==-1){
+								playerFail[j]=1;
+							}
+						}
+					}
+				}
 				for(var i=1;i<=win[0][0];i++)if(win[i][0]=="任意己方到達目標點") {
 					var a = new Array();
-					for(var j=1;j<=playerAmount;j++)a[j]=new Array();
-					for(var j=1;j<=playerAmount;j++) {
-						if(win[i][0]!="殺死王"&&win[i][0]!="無"&&win[i][0]!="殲滅敵人")a[j]=win[i][j].split("之");
-						var b = ((a[j][1]-0)+(a[j][0]-1)*15-(Math.floor(a[j][0]-1)/2)-1);
-						for(var k=0;k<playerPiece[j];k++)if(b==playerPiecePlace[j-1][k])playerWin[j]=1;
+					for(var j=0;j<playerAmount;j++)a[j]=new Array();
+					for(var j=0;j<playerAmount;j++) {
+						if(win[i][0]!="殺死王"&&win[i][0]!="無"&&win[i][0]!="殲滅敵人"){
+							a[j]=win[i][j+1].split("之");
+						}
+						var b = ((a[j][0]-1)*15+Number(a[j][1])-(Math.floor((a[j][0]-1)/2))-1);
+						for(var k=0;k<playerPiece[j+1];k++){
+							if(b==playerPiecePlace[j][k]){
+								playerWin[j]=1;
+							}
+						}
 					}
 				}
 				var a = playerAmount;
 				for(var i=0;i<playerAmount;i++) {
 					if(playerFail[i]==1)a-=1;
 				}
-				if(a==1)for(var i=0;i<playerAmount;i++)if(playerFail[i]!=1)playerWin[i]=1;
-				for(var i=0;i<playerAmount;i++)if(playerWin[i]==1) {
-					window.alert("玩家" + (i+1) + "勝利！");
-					for(var j=0;j<4;j++) {
-						playerWin[j]=0;
-						playerFail[j]=0;
-						step=0;
-						start();
-					}
+				if(a==1)
+					for(var i=0;i<playerAmount;i++)
+						if(playerFail[i]!=1)
+							playerWin[i]=1;
+				for(var i=0;i<playerAmount;i++)
+					if(playerWin[i]==1) {
+						window.alert("玩家" + (i+1) + "勝利！");
+						for(var j=0;j<4;j++) {
+							playerWin[j]=0;
+							playerFail[j]=0;
+							step=0;
+							start();
+						}
 				}
 			}
 			function colorReplace1_1() {
@@ -675,13 +705,13 @@
 				if(step==4)step++;
 				switch(step) {
 					case 0:
-						message = "<h1>遊戲規則設定</h1><p>玩家數量(1~4)：<input type='number' max='4' min='1' value='" + (playerAmount==null ? 2 : playerAmount) + "' id='playerAmount'></p><button onclick='start()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						message = "<h1>遊戲規則設定</h1><p>玩家數量(1~4)：<input type='number' max='4' min='1' value='" + (playerAmount==null ? 2 : playerAmount) + "' id='playerAmount'></p><button onclick='start()'>上一步</button><button onclick='nextStep()'>下一步</button>";
 						break;
 					case 1:
 						if(toPastStep==0)playerAmount = document.getElementById("playerAmount").value;
 						message = "<h1>遊戲規則設定</h1>";
-						for(var i=1;i<=playerAmount;i++) message+="<p>玩家" + i + "棋子數(1~32)：<input type='number' max='32' min='1' value='" + (playerPiece[i]==null ? 1 : playerPiece[i]) + "' id='player" + i + "pieces'></p>";
-						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						for(var i=1;i<=playerAmount;i++) message+="<p>玩家" + i + "棋子數(0~32，0為無上限，無上限的情況下每顆棋子功能相同)：<input type='number' max='32' min='0' value='" + (playerPiece[i]==null ? 1 : playerPiece[i]) + "' id='player" + i + "pieces'></p>";
+						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button>";
 						break;
 					case 2:
 						if(toPastStep==0)for(var i=1;i<=playerAmount;i++) {
@@ -695,7 +725,7 @@
 						}
 						message = "<h1>遊戲規則設定</h1>";
 						for(var d=0;d<playerAmount;d++){
-							message+="<h3>玩家" + (d+1) + "：</h3><p>代表色：<input type='color' value='" + (playerColor[d]==null ? "" : playerColor[d]) + "' id='playerColor" + d + "'></p>";
+							message+="<h3>玩家" + (d+1) + "：</h3><p>代表色：<input type='color' value='" + (playerColor[d]==null ? "black" : playerColor[d]) + "' id='playerColor" + d + "'></p>";
 							for(var e=0;e<playerPiece[(d+1)]||playerPiece[(d+1)]==0&&e==0;e++) {
 								message+="<h4>棋子" + (e+1) + "：</h4><p>名稱(可留白)：<input type='text' maxlength='2' style='width:50px' id='player" + d + "PieceName" + e + "' value='" + (playerPieceName[d][e]==null ? "" : playerPieceName[d][e]) + "'></p>";
 								if(shape==0) message+="<p>移動方式：<select id='player" + d + "PieceMove" + e + "'><option " + (playerPieceMove[d][e]=="跳棋式(可連跳)" ? "selected" : "") + ">跳棋式(可連跳)</option><option " + (playerPieceMove[d][e]=="跳棋式(不可連跳)" ? "selected" : "") + ">跳棋式(不可連跳)</option><option " + (playerPieceMove[d][e]=="單格" ? "selected" : "") + ">單格</option><option " + (playerPieceMove[d][e]=="無法移動" ? "selected" : "") + ">無法移動</option></select></p>";
@@ -706,7 +736,7 @@
 								if(shape!=0)message +="<p>棋子位階(0~100，同位階可互吃，高位階可吃低位階，1位階可吃100位階，0位階可吃全位階也可被除1位階以外的吃)：<input type='number' id='player" + d + "PieceRank" + e + "' min='0' max='100' value='" + (playerPieceRank[d][e]==null ? 2 : playerPieceRank[d][e]) + "'></p>"
 							}
 						}
-						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button><button onclick='saveall()'>存檔</button>";
+						message+="<button onclick='pastStep()'>上一步</button><button onclick='nextStep()'>下一步</button>";
 						break;
 					case 3:
 						if(toPastStep==0) {
